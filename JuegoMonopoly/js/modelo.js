@@ -37,15 +37,11 @@ function iniJuego(){
 	}
 }
 
-/**function Jugador(nombre,juego){
+function Jugador(nombre,juego){
 	this.nombre=nombre;
 	this.ficha=undefined;
 	this.juego=juego;
-
-	this.asignarFicha=function(){
-		this.juego.fase.asignarFicha(this);
-	}
-**/
+}
 
 function Ficha(forma){
 	this.forma=forma;

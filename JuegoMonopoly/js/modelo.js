@@ -3,7 +3,8 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 	this.coleccionFichas=coleccionFichas;
 	this.coleccionJugadores=[];
 	this.numeroJugadores=numeroJugadores;
-
+	this.turno=undefined;
+	this.fase=undefined;
 	this.asignarFicha=function(jugador){
 		var enc=false;
 		for(f in this.coleccionFichas){
@@ -20,7 +21,11 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 		if (!enc){
 			console.log("Ya no quedan fichas libres");
 		}
+		
 	};
+		this.setTurno=function(jugador){
+		this.turno=jugador;
+		jugador.turno=new MeToca();
 }
 
 function iniJuego(){
@@ -35,12 +40,49 @@ function iniJuego(){
 	this.crearPartida=function(){
 		return new Partida(this.crearTablero(),this.crearFichas(),2);
 	}
+	this.fase=new FaseInicio(this);
 }
+
+function FaseInicio(juego){
+	this.juego=juego;
+	this.asignarFicha=function(jugador){
+		this.juego.asignarFicha(jugador);
+		if (this.juego.coleccionJugadores.length==this.juego.numeroJugadores){
+			this.juego.fase=new FaseJugar(this.juego);
+		}
+	}
+}
+
+function FaseJugar(juego){
+	this.juego=juego;
+	this.lanzar=function(jugador){
+		jugador.turno.lanzar(jugador);
+				
+	}
+}
+
+function EsMiTurno(){
+	this.lanzar=function(jugador){
+	//	if (jugador.carcel...){
+		var numero=Dado.Tirar();
+		console.log("Mueve: "+numero+" posiciones");
+		jugador.ficha.mover(numero);}
+		//else{
+		//	console.log("Estas retenido")...;
+		//	jugador.carcel--;
+		//	cambiar turno.... 
+	//	}
+	//}
+}
+
 
 function Jugador(nombre,juego){
 	this.nombre=nombre;
 	this.ficha=undefined;
 	this.juego=juego;
+	this.asignarFicha=function(){
+		this.juego.fase.asignarFicha(this);
+	}
 }
 
 function Ficha(forma){
@@ -52,13 +94,32 @@ function Ficha(forma){
 	this.asignarJugador=function(jugador){
 		this.jugador=jugador;
 }
+this.nuevaCasilla=function(casilla){
+		this.casilla=casilla;
+	}
+	this.mover=function(posicion){
+		this.casilla.mover(this,posicion);
+	}
+	this.getPosicion=function(){
+		return this.casilla.posicion;
+	}
+
+	this.cae=function(casilla){
+		this.casilla=casilla;
+		this.casilla.cae(this);
+	}
 }
 
 function Casilla(posicion, tema){
 	this.posicion=posicion;
 	this.tema=tema;
 	this.tablero=undefined;
-
+	this.mover=function(ficha,posicion){
+		this.tablero.mover(ficha,posicion);
+	}
+	this.cae=function(ficha){
+		this.tema.cae(ficha);
+	}
 	this.asignarTablero=function(tablero){
 		this.tablero=tablero;
 	}
@@ -156,6 +217,19 @@ function Tablero(nCasillas){
 		this.casillas[38] = crearCasillas.crearCasillaImpuesto(38,"Impuesto de lujo",100,0);
 		this.casillas[39] = crearCasillas.crearCasillaCalle(39,"Paseo del Prado",400,"Morado");
 
+	}
+	
+	this.desplazar=function(ficha,posicion){
+		var nuevaPosicion=ficha.getPosicion()+posicion;
+		if (nuevaPosicion > 39){
+			nuevaPosicion = nuevaPosicion-39;
+		};
+		return nuevaPosicion;
+	}
+
+	this.mover=function(ficha,posicion){
+		var nuevaPosicion = this.desplazar(ficha,posicion);
+		ficha.cae(this.casillas[nuevaPosicion]);
 	}
 	crearCasillas = new CrearCasillas();
 	this.iniciarNormal();

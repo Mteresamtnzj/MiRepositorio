@@ -4,46 +4,81 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 	this.coleccionJugadores=[];
 	this.numeroJugadores=numeroJugadores;
 	this.turno=undefined;
-	this.fase=undefined;
+	this.dado=new Dado();
+	this.fase=new FaseInicial(this);
 	this.asignarFicha=function(jugador){
 		var enc=false;
 		for(f in this.coleccionFichas){
 			if (this.coleccionFichas[f].libre){
 				enc=true;
 				this.coleccionFichas[f].libre=false;
-				this.coleccionFichas[f].casilla=this.tablero.casillas[1];
+				this.coleccionFichas[f].casilla=this.tablero.casillas[0];
 				this.coleccionFichas[f].asignarJugador(jugador);
 				jugador.ficha=this.coleccionFichas[f];
 				this.coleccionJugadores.push(jugador);
+				console.log("El jugador "+jugador.nombre+" tiene la ficha "+coleccionFichas[f].forma);
 				break;
 			}
+			
 		};
 		if (!enc){
-			console.log("Ya no quedan fichas libres");
+			console.log("No hay más fichas.");
 		}
 		
 	};
+	this.cambiarTurno=function(jugador){
+		var indice=this.coleccionJugadores.indexOf(jugador);
+		var siguienteIndice=(indice+1)%(this.coleccionJugadores.length);
+		//antes de pasar el turno al otro jugador, vamos a comprobar si está encarcelado
+		//si está encarcelado, no cambiamos el turno pero decremento el contador de retención
+		if(this.coleccionJugadores[siguienteIndice].ficha.encarcelado==0){
+			this.setTurno(this.coleccionJugadores[siguienteIndice]);
+			jugador.turno=new NoMeToca();
+		}
+		else{
+			this.coleccionJugadores[siguienteIndice].ficha.encarcelado--;
+            this.cambiarTurno(this.coleccionJugadores[siguienteIndice])
+		}
+	}
+	
 		this.setTurno=function(jugador){
 		this.turno=jugador;
-		jugador.turno=new MeToca();
+		jugador.turno=new EsMiTurno(tablero);
+}
 }
 
-function iniJuego(){
+function EsMiTurno(tablero){
+		this.lanzar=function(jugador){
+	    var numero=Math.round(Math.random()*5+1);
+		jugador.tirada=numero;
+		console.log("Dado: "+numero);
+		tablero.mover(jugador.ficha,numero);
+	}
+}
+
+function NoMeToca(){
+	this.lanzar=function(jugador){
+		console.log("No es tu turno.");
+	}
+}
+
+function FactoryJuego(){
 	this.crearTablero=function(){
 		var tablero = new Tablero(40);
 		return tablero;
 	}
 	this.crearFichas=function(){
-		var coleccionFichas=[new Ficha("Carretilla"),new Ficha("Buque")];
+		var coleccionFichas=[new Ficha("Barco"),new Ficha("Dedal"),new Ficha("Perro"),new Ficha("Plancha"),new Ficha("Sombrero"),new Ficha("Coche"),new Ficha("Carretilla"),new Ficha("Zapato")];
 		return coleccionFichas;
 	}
 	this.crearPartida=function(){
 		return new Partida(this.crearTablero(),this.crearFichas(),2);
 	}
-	this.fase=new FaseInicio(this);
+	
 }
 
-function FaseInicio(juego){
+function FaseInicial(juego){
+	this.nombre="Inicial";
 	this.juego=juego;
 	this.asignarFicha=function(jugador){
 		this.juego.asignarFicha(jugador);
@@ -54,6 +89,8 @@ function FaseInicio(juego){
 }
 
 function FaseJugar(juego){
+	console.log("COMIENZA EL JUEGO! Quien empieza?");
+	this.nombre="Jugar";
 	this.juego=juego;
 	this.lanzar=function(jugador){
 		jugador.turno.lanzar(jugador);
@@ -61,52 +98,59 @@ function FaseJugar(juego){
 	}
 }
 
-function EsMiTurno(){
-	this.lanzar=function(jugador){
-	//	if (jugador.carcel...){
-		var numero=Dado.Tirar();
-		console.log("Mueve: "+numero+" posiciones");
-		jugador.ficha.mover(numero);}
-		//else{
-		//	console.log("Estas retenido")...;
-		//	jugador.carcel--;
-		//	cambiar turno.... 
-	//	}
-	//}
-}
-
 
 function Jugador(nombre,juego){
 	this.nombre=nombre;
+	this.turno=new NoMeToca();
+	
 	this.ficha=undefined;
 	this.juego=juego;
 	this.asignarFicha=function(){
 		this.juego.fase.asignarFicha(this);
 	}
+	this.lanzar=function(){
+		if(this.ficha.estado=="operativa")
+	juego.fase.lanzar(this);
+	else if(this.ficha.estado=="perdedor")
+		console.log("No puedes seguir jugando porque ya has perdido.");
+	}
+	this.cambiarTurno=function(){
+		this.juego.cambiarTurno(this);
+	}
 }
 
 function Ficha(forma){
 	this.forma=forma;
-	this.saldo=150000;
+	this.saldo=1500;
 	this.libre=true;
+	this.compras=[];
+	this.encarcelado=0;
 	this.casilla=undefined;
 	this.jugador=undefined;
+	this.estado="operativa";
+	var c=0;
 	this.asignarJugador=function(jugador){
 		this.jugador=jugador;
-}
-this.nuevaCasilla=function(casilla){
+	}
+	this.nuevaCasilla=function(casilla){
 		this.casilla=casilla;
 	}
 	this.mover=function(posicion){
-		this.casilla.mover(this,posicion);
+		this.tablero.mover(this.jugador.ficha,posicion);
 	}
 	this.getPosicion=function(){
 		return this.casilla.posicion;
 	}
-
 	this.cae=function(casilla){
 		this.casilla=casilla;
 		this.casilla.cae(this);
+	}
+	this.cambiarTurno=function(){
+		this.jugador.cambiarTurno();
+	}
+	this.asignarCompra=function(ficha,calle){
+		ficha.compras[c]=calle;
+		c++;
 	}
 }
 
@@ -114,9 +158,6 @@ function Casilla(posicion, tema){
 	this.posicion=posicion;
 	this.tema=tema;
 	this.tablero=undefined;
-	this.mover=function(ficha,posicion){
-		this.tablero.mover(ficha,posicion);
-	}
 	this.cae=function(ficha){
 		this.tema.cae(ficha);
 	}
@@ -126,7 +167,7 @@ function Casilla(posicion, tema){
 }
 
 function CrearCasillas(){
-	
+	var distanciaacarcel=19;
 	this.crearCasillaNormal=function(posicion){
 		return new Casilla(posicion,new Normal());
 	}
@@ -143,8 +184,8 @@ function CrearCasillas(){
 	this.crearCasillaParking=function(posicion){
 		return new Casilla(posicion, new Parking());
 	}
-	this.crearCasillaVeACarcel=function(posicion,casillacarcel){
-		return new Casilla(posicion, new VeACarcel(casillacarcel));
+	this.crearCasillaVeACarcel=function(posicion,distanciaacarcel,tablero){
+		return new Casilla(posicion, new VeACarcel(distanciaacarcel,tablero));
 	}
 	this.crearCasillaEstacion=function(posicion,nombre,precio){
 		return new Casilla(posicion,new Estacion(nombre,precio));
@@ -175,7 +216,7 @@ function Tablero(nCasillas){
 		}
 	};
 
-	this.configurarTablero=function(){
+	this.configurarTablero=function(tablero){
 		this.casillas[0] = crearCasillas.crearCasillaSalida(0);
 		this.casillas[1] = crearCasillas.crearCasillaCalle(1,"Ronda de Valencia",60,"Marrón");		
 		this.casillas[2] = crearCasillas.crearCasillaArcaComunal(2);
@@ -206,7 +247,7 @@ function Tablero(nCasillas){
 		this.casillas[27] = crearCasillas.crearCasillaCalle(27,"Calle Bailen",260,"Amarillo");
 		this.casillas[28] = crearCasillas.crearCasillaImpuesto(28,"Impuesto de aguas",150,0);				
 		this.casillas[29] = crearCasillas.crearCasillaCalle(29,"Plaza de España",280,"Amarillo");		
-		this.casillas[30] = crearCasillas.crearCasillaVeACarcel(30,10);		
+		this.casillas[30] = crearCasillas.crearCasillaVeACarcel(30,10,tablero);		
 		this.casillas[31] = crearCasillas.crearCasillaCalle(31,"Puerta del Sol",300,"Verde");
 		this.casillas[32] = crearCasillas.crearCasillaCalle(32,"Calle Alcala",300,"Verde");
 		this.casillas[33] = crearCasillas.crearCasillaArcaComunal(33);
@@ -219,12 +260,13 @@ function Tablero(nCasillas){
 
 	}
 	
+
 	this.desplazar=function(ficha,posicion){
 		var nuevaPosicion=ficha.getPosicion()+posicion;
 		if (nuevaPosicion > 39){
 			nuevaPosicion = nuevaPosicion-39;
 		};
-		return nuevaPosicion;
+	return nuevaPosicion;
 	}
 
 	this.mover=function(ficha,posicion){
@@ -234,20 +276,34 @@ function Tablero(nCasillas){
 	crearCasillas = new CrearCasillas();
 	this.iniciarNormal();
 	this.iniciarTablero();
-	this.configurarTablero();
+	this.configurarTablero(this);
 }
 
 
 function Normal(){
 	this.titulo="Normal";
+		this.cae=function(ficha){
+		console.log("Casilla normal");
+		ficha.cambiarTurno();
+	}
 }
 
 function Salida(){
 	this.nombre="Salida";
+		this.cae=function(ficha){
+		ficha.saldo=ficha.saldo+200;
+		console.log("Casilla de Salida. +200 PELOTIS PARA TI!");
+		console.log("Tu saldo ahora es de "+ficha.saldo);
+		ficha.cambiarTurno();
+	}
 }
 
 function ArcaComunal(){
 	this.nombre="Arca Comunal";
+		this.cae=function(ficha){
+		console.log("Arca Comunal.");
+		ficha.cambiarTurno();
+	}
 }
 
 function Impuesto(nombre,precio,porcentaje){
@@ -255,42 +311,158 @@ function Impuesto(nombre,precio,porcentaje){
 	this.titulo="Impuesto";
 	this.precio=precio;
 	this.porcentaje=porcentaje;
+		this.cae=function(ficha){
+		console.log("Casilla de "+nombre);
+		ficha.saldo = ficha.saldo-precio;
+		console.log("Has pagado "+precio+" pelotis de impuesto. Tu saldo es "+ficha.saldo);
+		if(ficha.saldo<=0){
+				ficha.estado="perdedor";
+				console.log("Has perdido. Terminó el juego para ti.");	
+			}
+		ficha.cambiarTurno();
+	}
 }
 
 function Estacion(nombre,precio){
 	this.nombre=nombre;
+	this.accion=undefined;
 	this.titulo="Estacion";
+	this.comprador=undefined;
 	this.precio=precio;
+		this.cae=function(ficha){
+		console.log(nombre);
+		
+		if(this.comprador == undefined){
+			var respuesta=prompt("Quieres comprar esta estación? [s/n]","");
+				if(respuesta=="s" && ficha.saldo>precio){
+						this.comprador=ficha.forma;
+						ficha.asignarCompra(ficha,this.nombre);
+						ficha.saldo=ficha.saldo-precio;
+						console.log("La estación ahora pertenece a la ficha "+ficha.forma+" y tiene un saldo de "+ficha.saldo);
+				} else {
+				console.log("Quizás a la próxima.");	
+			}
+		}
+		if (this.comprador!=undefined && this.comprador!=ficha.forma){
+			this.accion="AlTren";
+			this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
+			ficha.saldo=ficha.saldo-this.aPagar.cantidad;
+			console.log("Caiste en la estación de otro jugador. Tu saldo es de "+ficha.saldo);
+			if(ficha.saldo<=0){
+				ficha.estado="perdedor";
+				console.log("Has perdido. Terminó el juego para ti.");	
+			}
+		}
+		
+		
+		ficha.cambiarTurno();
+	}
 }
 
 function Suerte(){
 	this.nombre="Suerte!";
+		this.cae=function(ficha){
+		console.log("Que Suerte!");
+		ficha.cambiarTurno();
+	}
 }
 
 function Parking(){
 	this.nombre="Parking gratuito";
+		this.cae=function(ficha){
+		console.log("Estás en el Parking del Monopoly.");
+		ficha.cambiarTurno();
+	}
 }
 
 function Carcel(){
 	this.nombre="Carcel";
+		this.cae=function(ficha){
+		console.log("Has caído en la Cárcel. Pasas un turno encarcelado...");
+		ficha.encarcelado=1;
+		ficha.cambiarTurno();
+	}
 }
 
-function VeACarcel(){
+function VeACarcel(distanciaacarcel,tablero){
 	this.nombre="Ve a la carcel";
+	this.veacarcel=distanciaacarcel;
+		this.cae=function(ficha){
+		console.log("Te han arrestado y te llevan a la Cárcel.");
+		tablero.mover(ficha,19);
+		ficha.cambiarTurno();
+	}
 }
 
 function Calle(nombre,precio,color){
 	this.nombre=nombre;
 	this.precio=precio;
 	this.color=color;
+	this.casas=0;
+	this.hotel=0;
+	this.yaPaso=false;
+	this.comprador=undefined;
+		this.cae=function(ficha){
+		console.log(nombre);
+		if(this.comprador == undefined){
+			var respuesta=prompt("Quieres comprar esta calle? [s/n]","");
+				if(respuesta=="s" && ficha.saldo>precio){
+						this.comprador=ficha.forma;
+						ficha.asignarCompra(ficha,this.nombre);
+						ficha.saldo=ficha.saldo-precio;
+						console.log("La calle ahora pertenece a la ficha "+ficha.forma+" y tiene un saldo de "+ficha.saldo);
+					this.yaPaso=true;
+				} else {
+				console.log("Quizás a la próxima.");	
+			}
+		}
+		if(this.comprador==ficha.forma && this.casas<4 && this.yaPaso==false){
+			var respuesta=prompt("Quieres poner una casa? [s/n]","");
+				if(respuesta=="s"){
+					this.accion="Casa";
+					this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
+					if(ficha.saldo>this.aPagar.cantidad){
+						this.casas++;
+						ficha.saldo=ficha.saldo-aPagar.cantidad;
+						console.log("Tu saldo es de "+ficha.saldo);
+					}
+				}else {
+				console.log("Quizás a la próxima.");	
+			} 
+		}
+		
+		if (this.comprador!=undefined && this.comprador!=ficha.forma){
+			this.accion="Alquiler";
+			this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
+			ficha.saldo=ficha.saldo-this.aPagar.cantidad;
+			console.log("Caiste en la calle de otro jugador. Tu saldo es de "+ficha.saldo);
+			if(ficha.saldo<=0){
+				ficha.estado="perdedor";
+				console.log("Has perdido. Terminó el juego para ti.");	
+			}
+		}
+		this.yaPaso=false;
+		ficha.cambiarTurno();
+	}
+}
+
+function CalculoPago(precio,accion,casas,hotel){
+
+	if (accion=="Alquiler"){
+		this.cantidad=precio-50;
+	}
+	if (accion=="AlTren"){
+		this.cantidad=50;
+	}
+
 }
 
 function Dado(){
 	this.nombre = "Dado de 6 caras"
-	this.tirar=function(){
+	this.Tirar=function(){
 		return Math.round(Math.random()*5+1);
 	}
-	this.tirar2dados=function(){
-		return this.tirar()+this.tirar()
+	this.Tirar2dados=function(){
+		return this.Tirar()+this.Tirar()
 	}
 }

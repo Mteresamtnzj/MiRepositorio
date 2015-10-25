@@ -110,9 +110,9 @@ function Jugador(nombre,juego){
 	}
 	this.lanzar=function(){
 		if(this.ficha.estado=="operativa")
-	juego.fase.lanzar(this);
-	else if(this.ficha.estado=="perdedor")
-		console.log("No puedes seguir jugando porque ya has perdido.");
+			juego.fase.lanzar(this);
+		else if(this.ficha.estado=="perdedor")
+			console.log("No puedes seguir jugando porque ya has perdido.");
 	}
 	this.cambiarTurno=function(){
 		this.juego.cambiarTurno(this);
@@ -121,7 +121,7 @@ function Jugador(nombre,juego){
 
 function Ficha(forma){
 	this.forma=forma;
-	this.saldo=1500;
+	this.saldo=15000;
 	this.libre=true;
 	this.compras=[];
 	this.encarcelado=0;
@@ -167,7 +167,7 @@ function Casilla(posicion, tema){
 }
 
 function CrearCasillas(){
-	var distanciaacarcel=19;
+	var distanciaacarcel=20;
 	this.crearCasillaNormal=function(posicion){
 		return new Casilla(posicion,new Normal());
 	}
@@ -263,8 +263,8 @@ function Tablero(nCasillas){
 
 	this.desplazar=function(ficha,posicion){
 		var nuevaPosicion=ficha.getPosicion()+posicion;
-		if (nuevaPosicion > 39){
-			nuevaPosicion = nuevaPosicion-39;
+		if (nuevaPosicion >=40){
+			nuevaPosicion = nuevaPosicion-40;
 		};
 	return nuevaPosicion;
 	}
@@ -331,7 +331,6 @@ function Estacion(nombre,precio){
 	this.precio=precio;
 		this.cae=function(ficha){
 		console.log(nombre);
-		
 		if(this.comprador == undefined){
 			var respuesta=prompt("Quieres comprar esta estación? [s/n]","");
 				if(respuesta=="s" && ficha.saldo>precio){
@@ -389,7 +388,7 @@ function VeACarcel(distanciaacarcel,tablero){
 	this.veacarcel=distanciaacarcel;
 		this.cae=function(ficha){
 		console.log("Te han arrestado y te llevan a la Cárcel.");
-		tablero.mover(ficha,19);
+		tablero.mover(ficha,20);
 		ficha.cambiarTurno();
 	}
 }
@@ -405,7 +404,7 @@ function Calle(nombre,precio,color){
 		this.cae=function(ficha){
 		console.log(nombre);
 		if(this.comprador == undefined){
-			var respuesta=prompt("Quieres comprar esta calle? [s/n]","");
+			var respuesta=prompt("Quieres comprar esta calle por "+precio+" pelotis? [s/n]","");
 				if(respuesta=="s" && ficha.saldo>precio){
 						this.comprador=ficha.forma;
 						ficha.asignarCompra(ficha,this.nombre);
@@ -423,14 +422,29 @@ function Calle(nombre,precio,color){
 					this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
 					if(ficha.saldo>this.aPagar.cantidad){
 						this.casas++;
-						ficha.saldo=ficha.saldo-aPagar.cantidad;
+						ficha.saldo=ficha.saldo-this.aPagar.cantidad;
 						console.log("Tu saldo es de "+ficha.saldo);
-					}
-				}else {
+					} else console.log("No tienes dinero suficiente.");
+				}
+				else {
 				console.log("Quizás a la próxima.");	
 			} 
-		}
-		
+				}
+			if (this.comprador==ficha.forma && this.casas==4 && this.hotel==0 && this.yaPaso==false){
+			var respuesta=prompt("Quieres poner un hotel? [s/n]","");
+				if(respuesta=="s"){
+					this.accion="Hotel";
+					this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
+					if(ficha.saldo>this.aPagar.cantidad){
+						this.hotel++;
+						ficha.saldo=ficha.saldo-this.aPagar.cantidad;
+						console.log("Tu saldo es de "+ficha.saldo);
+					} else console.log("No tienes dinero suficiente.");
+				}
+				else {
+				console.log("Quizás a la próxima.");	
+				
+				}}
 		if (this.comprador!=undefined && this.comprador!=ficha.forma){
 			this.accion="Alquiler";
 			this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel);
@@ -443,11 +457,18 @@ function Calle(nombre,precio,color){
 		}
 		this.yaPaso=false;
 		ficha.cambiarTurno();
-	}
+	
 }
-
+}
 function CalculoPago(precio,accion,casas,hotel){
-
+	if(accion=="Casa"){
+		casas++;
+		this.cantidad=30*casas;
+	}
+	if(accion=="Hotel"){
+		hotel++;
+		this.cantidad=150;
+	}
 	if (accion=="Alquiler"){
 		this.cantidad=precio-50;
 	}
@@ -465,4 +486,4 @@ function Dado(){
 	this.Tirar2dados=function(){
 		return this.Tirar()+this.Tirar()
 	}
-}
+};

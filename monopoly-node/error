@@ -6,9 +6,9 @@ COMIENZA EL JUEGO! Quien empieza?
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
 COMIENZA EL JUEGO! Quien empieza?
-Dado: 5
-Estacion del tren de media noche
-La estacion ahora pertenece a la ficha Perro y tiene un saldo de 14800
+Dado: 1
+Ronda de Valencia
+La calle ahora pertenece a la ficha Perro y tiene un saldo de 14940
 .El jugador Jug1 tiene la ficha Perro
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
@@ -27,6 +27,7 @@ El jugador Jug3 tiene la ficha Coche
 COMIENZA EL JUEGO! Quien empieza?
 Te han arrestado y te llevan a la Carcel.
 Has caido en la Carcel. Pasas un turno encarcelado...
+No puedes pasar turno sin lanzar.
 .El jugador Jug1 tiene la ficha Perro
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
@@ -48,7 +49,7 @@ El jugador Jug3 tiene la ficha Coche
 COMIENZA EL JUEGO! Quien empieza?
 Ronda de Valencia
 La calle ahora pertenece a la ficha Perro y tiene un saldo de 14940
-Todavia no puedes edificar aqu�.
+Primero debes lanzar.
 .El jugador Jug1 tiene la ficha Perro
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
@@ -64,14 +65,13 @@ Arca Comunal.
 La tarjeta dice: Debes pagar una multa de 100 pelotis.
 Tu saldo ahora es de 14900
 Propiedad edificable. [object Object]
-Estoy dentro de casas.
 Casa edificada. Tu saldo es de 14650
 Todavia no puedes edificar aqu�.
 .El jugador Jug1 tiene la ficha Perro
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
 COMIENZA EL JUEGO! Quien empieza?
-Esta propiedad no te pertenece.
+Primero debes lanzar.
 .El jugador Jug1 tiene la ficha Perro
 El jugador Jug2 tiene la ficha Sombrero
 El jugador Jug3 tiene la ficha Coche
@@ -106,9 +106,59 @@ Casilla de Impuesto sobre el capital
 Has pagado 200 pelotis de impuesto. Tu saldo es -190
 Has perdido. Termino el juego para ti.
 El juego termino. El GANADOR es Jug3!!
+.El jugador Jug1 tiene la ficha Perro
+El jugador Jug2 tiene la ficha Sombrero
+El jugador Jug3 tiene la ficha Coche
+COMIENZA EL JUEGO! Quien empieza?
+Has caido en la Carcel. Pasas un turno encarcelado...
+No puedes pasar turno sin lanzar.
+Ya no estas encarcelado!
+.El jugador Jug1 tiene la ficha Perro
+El jugador Jug2 tiene la ficha Sombrero
+El jugador Jug3 tiene la ficha Coche
+COMIENZA EL JUEGO! Quien empieza?
+Has caido en la Carcel. Pasas un turno encarcelado...
+No puedes pasar turno sin lanzar.
+Dados: 2
+DOBLES!
+Puedes salir de la carcel.
+.El jugador Jug1 tiene la ficha Perro
+El jugador Jug2 tiene la ficha Sombrero
+El jugador Jug3 tiene la ficha Coche
+COMIENZA EL JUEGO! Quien empieza?
+Dados: 8
+DOBLES!
+Av. Reina Victoria
+La calle ahora pertenece a la ficha Perro y tiene un saldo de 14900
+Tira otra vez!
+Dados: 6
+DOBLES!
+Calle Fuencarral
+La calle ahora pertenece a la ficha Perro y tiene un saldo de 14740
+Tira otra vez!
+.El jugador Jug1 tiene la ficha Perro
+El jugador Jug2 tiene la ficha Sombrero
+El jugador Jug3 tiene la ficha Coche
+COMIENZA EL JUEGO! Quien empieza?
+Dados: 9
+DOBLES!
+Calle Bravo Murillo
+La calle ahora pertenece a la ficha Perro y tiene un saldo de 14880
+Tira otra vez!
+Dados: 7
+DOBLES!
+Av. Felipe II
+La calle ahora pertenece a la ficha Perro y tiene un saldo de 14700
+Tira otra vez!
+Te pasaste...
+Has caido en la Carcel. Pasas un turno encarcelado...
+No puedes pasar turno sin lanzar.
+Dados: 8
+DOBLES!
+Puedes salir de la carcel.
 .........
 
-Finished in 0.162 seconds
-22 tests, 236 assertions, 0 failures, 0 skipped
+Finished in 0.14 seconds
+26 tests, 242 assertions, 0 failures, 0 skipped
 
 

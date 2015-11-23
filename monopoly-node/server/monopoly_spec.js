@@ -61,6 +61,7 @@ describe("Comprobando funcionalidad del tablero...",function(){
 			
 		});
 
+
 		
 		it("...el saldo del jugador aumenta 200 pelotis si pasa por la Salida",function(){
 
@@ -92,6 +93,7 @@ describe("Comprobando funcionalidad del tablero...",function(){
 			this.tablero.mover(this.Jug1.ficha,1);		
 			this.tablero.mover(this.Jug2.ficha,2);	
 			this.juego.setTurno(this.Jug1);
+			this.Jug1.yaLanzo=true;
 			this.Jug1.edificar(this.tablero.casillas[6].tema);
 			expect(this.tablero.casillas[6].tema.casas).toEqual(1);
 		});
@@ -136,10 +138,67 @@ describe("Comprobando funcionalidad del tablero...",function(){
 			expect(this.juego.fase.nombre).toEqual("Fin");
 		});
 		
+		it("...el jugador usa la tarjeta para salir de la carcel",function(){
+			this.tablero.mover(this.Jug1.ficha,10);
+			expect(this.Jug1.ficha.encarcelado).toEqual(1);
+			this.Jug1.ficha.tarjetaSalirCarcel=1;
+			this.Jug1.ficha.salirDeCarcel();
+			expect(this.Jug1.ficha.encarcelado).toEqual(0);
+			
+		});
+		
+		it("...el jugador saca dobles para salir de la carcel",function(){
+			this.tablero.mover(this.Jug1.ficha,10);
+			expect(this.Jug1.ficha.encarcelado).toEqual(1);
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			expect(this.Jug1.ficha.encarcelado).toEqual(0);
+			
+		});
+		
+		
+		it("...si el jugador saca dobles puede volver a lanzar",function(){
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			var pos1=this.Jug1.ficha.getPosicion();
+			if(pos1==10){
+				this.Jug1.ficha.encarcelado=0;
+				this.tablero.mover(this.Jug1.ficha,11);
+				pos1=this.Jug1.ficha.getPosicion();
+			}
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			var pos2=this.Jug1.ficha.getPosicion();
+			if(pos2==10){
+				this.Jug1.ficha.encarcelado=0;
+				this.tablero.mover(this.Jug1.ficha,11);
+				pos2=this.Jug1.ficha.getPosicion();
+			}
+			expect(pos1).toBeLessThan(pos2);
+		});
+	
+		it("...si el jugador saca dobles 3 veces se va a la carcel",function(){
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			if(this.Jug1.ficha.getPosicion()==10){
+				this.Jug1.ficha.encarcelado=0;
+				this.tablero.mover(this.Jug1.ficha,11);
+			}
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			if(this.Jug1.ficha.getPosicion()==10){
+				this.Jug1.ficha.encarcelado=0;
+				this.tablero.mover(this.Jug1.ficha,11);
+			}
+			this.Jug1.turno.doblesPrueba=true;
+			this.Jug1.lanzar2();
+			expect(this.Jug1.ficha.getPosicion()).toEqual(10);
+		});
+		
 });
 
 
-describe("modelo.Dado",function(){
+describe("Dado",function(){
 		var juego;
 	var coleccionFichas;
 	var tablero;

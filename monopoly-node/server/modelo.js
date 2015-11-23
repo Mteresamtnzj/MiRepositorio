@@ -1,14 +1,3 @@
-/*to do:
-- obligar a tirar antes de nada en su turno
-- condiciones para salir de la carcel
-- estado de ficha bancarrota -- vender casas e hipotecar calles
-- edificar en orden: en un grupo de calles cuando todas tengan una casa, se puede poner la segunda casa...
-- poner tarjetas de ir a la carcel y de salir de carcel
-- el jugador debe llamar al metodo empezar para comenzar el juego
-- hacer que l tarjeta de suerte sea aleatoria
-- comprobar fin cada vez que lanza el primer jugador, poner condicion de alcanzar maximo
-*/
-
 function Partida(tablero, coleccionFichas,numeroJugadores){
 	this.tablero = tablero;
 	this.coleccionFichas=coleccionFichas;
@@ -56,7 +45,14 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 	}
 	
 	this.compruebaFin=function(){
+		
 		for(j in this.coleccionJugadores){
+			if(this.coleccionJugadores[j].ficha.saldo>20000){
+				this.ganador=this.coleccionJugadores[j];
+				console.log("El juego termino. El GANADOR es "+this.ganador.nombre+"!!");
+				this.fase=new FaseFin();
+				return true;
+			}
 			if(this.coleccionJugadores[j].ficha.estado=="operativa"){
 				this.ganador=this.coleccionJugadores[j];
 				this.cont++;
@@ -80,12 +76,15 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 }
 
 function EsMiTurno(tablero){
+	this.nombre="metoca";
+	this.doblesPrueba=false;
 	this.lanzar=function(jugador){
 		if(jugador.tiradas>0){
 	    var numero=Math.round(Math.random()*5+1);
 		console.log("Dado: "+numero);
 		tablero.mover(jugador.ficha,numero);
 		jugador.tiradas=0;
+		jugador.yaLanzo=true;
 		} else console.log("Ya lanzaste.");
 	}
 	this.lanzar2=function(jugador){
@@ -93,25 +92,34 @@ function EsMiTurno(tablero){
 		var d2=Math.round(Math.random()*5+1);
 	    var numero=d1+d2;
 		if (jugador.tiradas>0){
-		if(d1==d2 && jugador.tiradas<=2){
+			
+			if (jugador.tiradas==3){
+			console.log("Te pasaste...");
+			jugador.ficha.cae(tablero.casillas[10]);
+			jugador.tiradas=0;
+		}
+			
+		if((d1==d2 && jugador.tiradas<3) || this.doblesPrueba==true){
 			jugador.tiradas++;
 			console.log("Dados: "+numero);
 			console.log("DOBLES!");
-			tablero.mover(jugador.ficha,numero);
-			console.log("Tira otra vez!");
-		}
-		if (jugador.tiradas==3){
-			console.log("Te pasaste...");
-			jugador.ficha.cae(casillas[10]);
-			jugador.tiradas=0;
-		}
-		if (d1!=d2){
+			if(jugador.ficha.encarcelado==1){
+				jugador.ficha.encarcelado=0;
+				console.log("Puedes salir de la carcel.");
+			} else{
+				tablero.mover(jugador.ficha,numero);
+				console.log("Tira otra vez!");
+			}
+			this.doblesPrueba=false;
+		}else if (d1!=d2){
 			if (jugador.tiradas==0)
 			console.log("Ya lanzaste.");
 		else{			jugador.tiradas=0;
 			console.log("Dados: "+numero);
 			tablero.mover(jugador.ficha,numero);
 		}}
+		
+		
 		} else console.log("Ya lanzaste.");
 		
 	}
@@ -120,7 +128,6 @@ function EsMiTurno(tablero){
 		if(propiedad.comprador==jugador.ficha && propiedad.edificable==true){
 			console.log("Propiedad edificable. "+propiedad);
 		if(propiedad.casas<4){
-			 console.log("Estoy dentro de casas.");
 					this.accion="Casa";
 					this.aPagar=new CalculoPago(propiedad.precio,this.accion,propiedad.casas,propiedad.hotel, jugador.ficha.estaciones);
 					if(jugador.ficha.saldo>this.aPagar.cantidad){
@@ -145,6 +152,7 @@ function EsMiTurno(tablero){
 }
 
 function NoMeToca(){
+	this.nombre="nometoca";
 	this.lanzar=function(jugador){
 		console.log("No es tu turno.");
 	}
@@ -183,7 +191,6 @@ function FaseInicial(juego){
 }
 
 function FaseJugar(juego){
-	console.log("COMIENZA EL JUEGO! Quien empieza?");
 	this.nombre="Jugar";
 	this.juego=juego;
 	this.lanzar=function(jugador){
@@ -215,9 +222,17 @@ function FaseFin(juego,jugador){
 function Jugador(nombre,juego){
 	this.nombre=nombre;
 	this.turno=new NoMeToca();
+	this.yaLanzo=false;
 	this.ficha=undefined;
+	this.uid=undefined;
 	this.juego=juego;
 	this.tiradas=undefined;
+	this.getUid=function(){
+		val= (new Date()).valueOf().toString();
+		console.log(val);
+		return val;
+	}
+	this.uid=this.getUid();
 	this.asignarFicha=function(){
 		this.juego.fase.asignarFicha(this);
 	}
@@ -234,17 +249,24 @@ function Jugador(nombre,juego){
 		console.log("No puedes seguir jugando porque ya has perdido.");
 	}
 	this.cambiarTurno=function(){
+		if(this.yaLanzo==true){
 		this.juego.cambiarTurno(this);
+		this.yaLanzo=false;
+		} else
+			console.log("No puedes pasar turno sin lanzar.");
 	}
 	this.edificar=function(propiedad){
-		
+		if(this.yaLanzo==true)
 		this.turno.edificar(propiedad,this);
-		
+		else
+			console.log("Primero debes lanzar.");
 	}
+	
 	
 	this.compruebaFin=function(){
 		juego.fase.compruebaFin();
 	}
+	
 }
 
 function Ficha(forma){
@@ -257,6 +279,7 @@ function Ficha(forma){
 	this.casilla=undefined;
 	this.jugador=undefined;
 	this.estado="operativa";
+	this.tarjetaSalirCarcel=0;
 	var c=0;
 	this.asignarJugador=function(jugador){
 		this.jugador=jugador;
@@ -277,9 +300,17 @@ function Ficha(forma){
 	this.cambiarTurno=function(){
 		this.jugador.cambiarTurno();
 	}
+	
 	this.asignarCompra=function(ficha,propiedad){
 		ficha.compras[c]=propiedad;
 		c++;
+	}
+	
+	this.salirDeCarcel=function(){
+		if(this.tarjetaSalirCarcel==1){
+			this.encarcelado=0;
+			console.log("Ya no estas encarcelado!")
+		}
 	}
 	this.compruebaFin=function(){
 		this.jugador.compruebaFin();
@@ -470,9 +501,9 @@ function Estacion(nombre,precio){
 	this.precio=precio;
 		this.cae=function(ficha){
 		console.log(nombre);
+		
 		if(this.comprador == undefined){
-			//var respuesta=prompt("Quieres comprar esta estacion? [s/n]","");
-				if(/*respuesta=="s" && */ficha.saldo>this.precio){
+				if(ficha.saldo>this.precio){
 						this.comprador=ficha;
 						ficha.asignarCompra(ficha,this);
 						ficha.saldo=ficha.saldo-this.precio;
@@ -511,6 +542,7 @@ function Carcel(){
 		this.cae=function(ficha){
 		console.log("Has caido en la Carcel. Pasas un turno encarcelado...");
 		ficha.encarcelado=1;
+		ficha.cambiarTurno();
 	}
 }
 
@@ -534,8 +566,7 @@ function Calle(nombre,precio,color){
 		this.cae=function(ficha){
 		console.log(nombre);
 		if(this.comprador == undefined){
-			/*var respuesta=prompt("Quieres comprar esta calle por "+precio+" pelotis? [s/n]","");*/
-				if(/*respuesta=="s" && */ficha.saldo>precio){
+				if(ficha.saldo>precio){
 						this.comprador=ficha;
 						ficha.asignarCompra(ficha,this);
 						ficha.saldo=ficha.saldo-precio;
@@ -631,8 +662,12 @@ function tarjetas(ficha,tablero){
 		var hastacarcel=39-ficha.getPosicion()+10;
 		tablero.mover(ficha,hastacarcel);
 	}
+	this.salirCarcel=function(){
+		console.log("La tarjeta dice: Esta tarjeta puede sacarte de la carcel!");
+		ficha.tarjetaSalirCarcel=1;
+	}
 
-	if(tablero.nTarjeta>4)
+	if(tablero.nTarjeta>5)
 		tablero.nTarjeta=0;
 		switch(tablero.nTarjeta){
 		case 0: 
@@ -655,10 +690,14 @@ function tarjetas(ficha,tablero){
 			tablero.nTarjeta++;
 			this.retroceder();
 			break;
+		case 5:
+			tablero.nTarjeta++;
+			this.salirCarcel();
+			break;
 	}
 	
 }
-
+ 
 
 module.exports.FactoryJuego = FactoryJuego;
 module.exports.Partida = Partida;

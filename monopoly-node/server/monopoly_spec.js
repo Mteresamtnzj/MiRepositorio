@@ -45,7 +45,9 @@ describe("Comprobando funcionalidad del tablero...",function(){
 		});
 			
 		it("...el jugador compra la calle Ronda de Valencia",function(){
+			this.Jug1.yaLanzo=true;
 			this.tablero.mover(this.Jug1.ficha,1);
+			this.Jug1.asignarCompra(this.tablero.casillas[1].tema);
 			expect(this.Jug1.ficha.compras[0].nombre).toEqual("Ronda de Valencia");
 		});
 		
@@ -72,27 +74,45 @@ describe("Comprobando funcionalidad del tablero...",function(){
 		
 		
 		it("...si otro jugador cae en la calle comprada Ronda de Valencia, lo que pasa es que su saldo decrementa por pagar alquiler (es decir, no puede comprarla)",function(){
+			
 			var s=this.Jug2.ficha.saldo;
+			this.Jug1.yaLanzo=true;
 			this.tablero.mover(this.Jug1.ficha,1);
+			this.Jug1.asignarCompra(this.tablero.casillas[1].tema);
 			expect(this.Jug1.ficha.compras[0].nombre).toEqual("Ronda de Valencia");
+			this.Jug2.yaLanzo=true;
 			this.tablero.mover(this.Jug2.ficha,1);
 			expect(this.Jug1.ficha.saldo).toBeLessThan(s);
 			
 		});
 		
 		it("...el jugador compra la calle Ronda de Valencia y  no puede poner casas si no tiene todas las calles del grupo",function(){
+			this.Jug1.yaLanzo=true;
 			this.tablero.mover(this.Jug1.ficha,1);
+			this.Jug1.asignarCompra(this.tablero.casillas[1].tema);
 			expect(this.Jug1.ficha.compras[0].nombre).toEqual("Ronda de Valencia");
 			this.Jug1.edificar(this.tablero.casillas[1].tema);
 			expect(this.tablero.casillas[1].tema.casas).toEqual(0);
 		});
 		
 		it("...el jugador compra la calle Ronda de Valencia y puede poner casas porque tiene todas las calles del grupo",function(){
+			
+		/*	this.Jug1.yaLanzo=true;
 			this.tablero.mover(this.Jug1.ficha,6);
-			this.tablero.mover(this.Jug1.ficha,2);
-			this.tablero.mover(this.Jug1.ficha,1);		
-			this.tablero.mover(this.Jug2.ficha,2);	
+			this.Jug1.asignarCompra(this.tablero.casillas[6].tema);
 			this.juego.setTurno(this.Jug1);
+			this.Jug1.yaLanzo=true;
+			this.tablero.mover(this.Jug1.ficha,2);
+			this.Jug1.asignarCompra(this.tablero.casillas[8].tema);
+			this.juego.setTurno(this.Jug1);
+			this.Jug1.yaLanzo=true;
+			this.tablero.mover(this.Jug1.ficha,1);		
+			this.Jug1.asignarCompra(this.tablero.casillas[9].tema);
+			this.juego.setTurno(this.Jug1);
+			this.Jug1.yaLanzo=true;*/
+			this.Jug1.ficha.asignarCompra(this.Jug1.ficha,this.tablero.casillas[6].tema);
+			this.Jug1.ficha.asignarCompra(this.Jug1.ficha,this.tablero.casillas[8].tema);
+			this.Jug1.ficha.asignarCompra(this.Jug1.ficha,this.tablero.casillas[9].tema);
 			this.Jug1.yaLanzo=true;
 			this.Jug1.edificar(this.tablero.casillas[6].tema);
 			expect(this.tablero.casillas[6].tema.casas).toEqual(1);

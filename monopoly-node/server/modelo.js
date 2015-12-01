@@ -126,7 +126,7 @@ function EsMiTurno(tablero){
 	this.edificar=function(propiedad,jugador){
 		
 		if(propiedad.comprador==jugador.ficha && propiedad.edificable==true){
-			console.log("Propiedad edificable. "+propiedad);
+			console.log("Propiedad edificable. "+propiedad.nombre);
 		if(propiedad.casas<4){
 					this.accion="Casa";
 					this.aPagar=new CalculoPago(propiedad.precio,this.accion,propiedad.casas,propiedad.hotel, jugador.ficha.estaciones);
@@ -149,6 +149,11 @@ function EsMiTurno(tablero){
 				console.log("Esta propiedad no te pertenece.");
 			} else console.log("Todavia no puedes edificar aquí.");
 	}
+	
+	this.asignarCompra=function(propiedad,jugador){
+		
+		jugador.ficha.asignarCompra(jugador.ficha,propiedad);
+	}
 }
 
 function NoMeToca(){
@@ -160,6 +165,9 @@ function NoMeToca(){
 		console.log("No es tu turno.");
 	}
 	this.edificar=function(propiedad){
+		console.log("No es tu turno.");
+	}
+	this.asignarCompra=function(propiedad,jugador){
 		console.log("No es tu turno.");
 	}
 }
@@ -262,6 +270,14 @@ function Jugador(nombre,juego){
 			console.log("Primero debes lanzar.");
 	}
 	
+	this.asignarCompra=function(propiedad){
+		if(this.yaLanzo==true){
+			this.turno.asignarCompra(propiedad,this);
+		}
+		else
+			console.log("Primero debes lanzar.");
+	}
+	
 	
 	this.compruebaFin=function(){
 		juego.fase.compruebaFin();
@@ -271,12 +287,13 @@ function Jugador(nombre,juego){
 
 function Ficha(forma){
 	this.forma=forma;
-	this.saldo=15000;
+	this.saldo=1500;
 	this.libre=true;
 	this.compras=[];
 	this.estaciones=0;
 	this.encarcelado=0;
 	this.casilla=undefined;
+	
 	this.jugador=undefined;
 	this.estado="operativa";
 	this.tarjetaSalirCarcel=0;
@@ -302,8 +319,25 @@ function Ficha(forma){
 	}
 	
 	this.asignarCompra=function(ficha,propiedad){
-		ficha.compras[c]=propiedad;
-		c++;
+		this.compras.push(propiedad);
+		//c++;
+		propiedad.comprador=this;
+		this.saldo=this.saldo-propiedad.precio;
+		console.log(propiedad.comprador.forma+ " compra la propiedad "+propiedad.nombre);
+		var contador=0;
+		for(var i=0;i<this.compras.length;i++){
+			if(this.compras[i].color==propiedad.color)
+				contador++;
+			console.log("CONTADOR "+contador);
+			console.log("COLORES "+this.compras[i].nombre+" "+this.compras[i].color);
+		}
+		if(contador==3 || (propiedad.color=="Marron" && contador==2)){
+			console.log("Has completado el grupo "+propiedad.color);
+				for(i in this.compras)
+					if(this.compras[i].color==propiedad.color){
+						this.compras[i].edificable=true;
+					}
+		}
 	}
 	
 	this.salirDeCarcel=function(){
@@ -501,7 +535,10 @@ function Estacion(nombre,precio){
 	this.precio=precio;
 		this.cae=function(ficha){
 		console.log(nombre);
-		
+		if (this.comprador==undefined)
+		console.log("La estacion no pertenece a nadie.");
+		else console.log("La estacion pertenece a la ficha "+this.comprador.forma);
+		/*
 		if(this.comprador == undefined){
 				if(ficha.saldo>this.precio){
 						this.comprador=ficha;
@@ -512,7 +549,7 @@ function Estacion(nombre,precio){
 				} else {
 				console.log("Quizas a la proxima.");	
 			}
-		}
+		}*/
 		if (this.comprador!=undefined && this.comprador!=ficha){
 			this.accion="AlTren";
 			this.aPagar=new CalculoPago(this.precio,this.accion,this.casas,this.hotel,this.comprador.estaciones);
@@ -556,6 +593,7 @@ function VeACarcel(distanciaacarcel,tablero){
 }
 
 function Calle(nombre,precio,color){
+	this.titulo="Calle";
 	this.nombre=nombre;
 	this.precio=precio;
 	this.color=color;
@@ -565,7 +603,10 @@ function Calle(nombre,precio,color){
 	this.comprador=undefined;
 		this.cae=function(ficha){
 		console.log(nombre);
-		if(this.comprador == undefined){
+		if (this.comprador==undefined)
+		console.log("La calle no pertenece a nadie.");
+		else console.log("La calle pertenece a la ficha "+this.comprador.forma);
+		/*if(this.comprador == undefined){
 				if(ficha.saldo>precio){
 						this.comprador=ficha;
 						ficha.asignarCompra(ficha,this);
@@ -576,7 +617,7 @@ function Calle(nombre,precio,color){
 							if(ficha.compras[i].color==this.color)
 								contador++;
 						}
-						if(contador==3){
+						if(contador==3 || (color="Marron" && contador==2)){
 							console.log("Has completado el grupo "+this.color);
 							for(i in ficha.compras)
 							if(ficha.compras[i].color==this.color){
@@ -586,8 +627,7 @@ function Calle(nombre,precio,color){
 				} else {
 				console.log("Quizas a la proxima.");	
 			}
-		}
-
+		}*/
 		if (this.comprador!=undefined && this.comprador!=ficha){
 			this.accion="Alquiler";	
 			this.aPagar=new CalculoPago(precio,this.accion,this.casas,this.hotel,this.comprador.estaciones);

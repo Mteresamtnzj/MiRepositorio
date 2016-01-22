@@ -287,13 +287,13 @@ function Jugador(nombre,juego){
 
 function Ficha(forma){
 	this.forma=forma;
-	this.saldo=1500;
+	this.saldo=500;
 	this.libre=true;
 	this.compras=[];
 	this.estaciones=0;
 	this.encarcelado=0;
 	this.casilla=undefined;
-	
+	this.info=undefined;
 	this.jugador=undefined;
 	this.estado="operativa";
 	this.tarjetaSalirCarcel=0;
@@ -340,12 +340,25 @@ function Ficha(forma){
 		}
 	}
 	
-	this.salirDeCarcel=function(){
+	this.salirConTarjeta=function(){
 		if(this.tarjetaSalirCarcel==1){
 			this.encarcelado=0;
+			this.tarjetaSalirCarcel=0;
 			console.log("Ya no estas encarcelado!")
 		}
 	}
+	this.salirConDobles=function(){
+		var d1=Math.round(Math.random()*5+1);
+		var d2=Math.round(Math.random()*5+1);
+	    var numero=d1+d2;
+		if(d1==d2 && jugador.ficha.encarcelado==1){
+			console.log("Dados: "+numero);
+			console.log("DOBLES!");
+			jugador.ficha.encarcelado=0;
+			console.log("Puedes salir de la carcel!");
+		} 
+	}
+		
 	this.compruebaFin=function(){
 		this.jugador.compruebaFin();
 	}
@@ -674,6 +687,7 @@ function Dado(){
 function tarjetas(ficha,tablero){
 	this.multa=function(){
 		console.log("La tarjeta dice: Debes pagar una multa de 100 pelotis.");
+		ficha.info="La tarjeta dice: Debes pagar una multa de 100 pelotis.";
 		ficha.saldo=ficha.saldo-100;
 		console.log("Tu saldo ahora es de "+ficha.saldo);
 		if(ficha.saldo<=0){
@@ -684,26 +698,31 @@ function tarjetas(ficha,tablero){
 	}
 	this.premio=function(){
 		console.log("La tarjeta dice: Te ha tocado un premio de 100 pelotis.");
+		ficha.info="La tarjeta dice: Te ha tocado un premio de 100 pelotis.";
 		ficha.saldo=ficha.saldo+100;
 		console.log("Tu saldo ahora es de "+ficha.saldo);
 		
 	}
 	this.avanzar=function(){
 		console.log("La tarjeta dice: Avanzas 2 posiciones.");
+		ficha.info="La tarjeta dice: Avanzas 2 posiciones.";
 		tablero.mover(ficha,2);
 		
 	}
 	this.retroceder=function(){
 		console.log("La tarjeta dice: Retrocedes 2 posiciones.");
+		ficha.info="La tarjeta dice: Retrocedes 2 posiciones.";
 		tablero.mover(ficha,-2);
 	}
 	this.detenido=function(){
 		console.log("La tarjeta dice: Te han detenido.");
-		var hastacarcel=39-ficha.getPosicion()+10;
+		ficha.info="La tarjeta dice: Te han detenido.";
+		var hastacarcel=40-ficha.getPosicion()+10;
 		tablero.mover(ficha,hastacarcel);
 	}
 	this.salirCarcel=function(){
 		console.log("La tarjeta dice: Esta tarjeta puede sacarte de la carcel!");
+		ficha.info="La tarjeta dice: Esta tarjeta puede sacarte de la carcel!"
 		ficha.tarjetaSalirCarcel=1;
 	}
 

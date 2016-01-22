@@ -1,18 +1,31 @@
 <html>
 	<head>
 		<script src="client/lib/jquery-2.1.4.min.js"></script>
-		<script src="client/lib/jquery.cookie.js"></script>
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		<link rel="stylesheet" type="text/css" href="client/css/estilo.css"></link>
 		<title>Monopoly</title>
 	</head>
 		
 		<body>
-			
-			<h1>Bienvenido al juego del Monopoly!!!!</h1>
-			<div id="nuevoJug"></div>
-			<div id="datos"></div>
-			<div id="opciones"></div>
+			<header>
+				<h1>Monopoly!!!!</h1>
+			</header>
+			<nav>
+				<div id="nuevoJug"></div>
+				<div id="dialog" title="INFORMACION" style="display:none;"></div>
+				<div id="datos" style="position:absolute;top:50px;left:10px"></div>
+			</nav>
+			<section>
+				<canvas height="555" width="555" id="micanvas"></canvas>
+			</section>
+			<script>var socket = io();</script>
 			<script src="client/js/monopoly-client.js"></script>
 			<script>altaJugador();</script>
+		<!--	<img src="img/tablero.png" style="position:absolute;top:50px;left:500px;high:500px;width:500px"></img> 
+			<script>inicio();</script>-->
 			
 		</body>
 		

@@ -1,6 +1,7 @@
 var modelo=require("./server/modelo.js");
 var fs = require("fs");
 var http= require("http");
+
 var express =require("express");
 var config = JSON.parse(fs.readFileSync("./config.json"));
 var port = config.port;
@@ -8,7 +9,7 @@ var host=config.host;
 
 var app=express();
 var server = http.createServer(app);
-
+var io=require('socket.io')(server);
 //Juego
 var juego = new modelo.FactoryJuego();
 var partida = juego.crearPartida();
@@ -30,7 +31,7 @@ app.get("/jugador/:nombre", function(request,response){
 		var jug = new modelo.Jugador(request.params.nombre,partida);	
 		jug.asignarFicha();
 		if(jug.ficha){
-			jsonData={"nombre":jug.nombre,"uid":jug.uid,"ficha":jug.ficha.forma,"posicion":jug.ficha.getPosicion()}
+			jsonData={"nombre":jug.nombre,"uid":jug.uid,"ficha":jug.ficha.forma,"posicion":jug.ficha.getPosicion(),"celda":jug.ficha.getPosicion()}
 		} else{
 			jsonData={"nombre":"Lo siento","uid":"jug.uid","ficha":"no tienes ficha","posicion":"para jugar."}
 		}
@@ -47,7 +48,7 @@ app.get("/empezar/:uid",function(req,res){
 	if(partida.fase.nombre=="Jugar"){
 	partida.setTurno(partida.coleccionJugadores[0]);
 		
-		jsonData={"res":req.params.uid/*partida.coleccionJugadores[0].uid*/,"nombre":partida.coleccionJugadores[0].nombre}
+		jsonData={"res":req.params.uid,"nombre":partida.coleccionJugadores[0].nombre}
 	} else{ jsonData={"nombre":"Incompleta."};
 	}
 	res.send(jsonData);
@@ -74,11 +75,26 @@ app.get("/lanzar/:uidJugador",function(req,res){
 								jsonData={"res":"El juego ha terminado.","nombre":partida.ganador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre};
 							res.send(jsonData);	
 						}
-					if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=jugador.ficha && partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=undefined){
-						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"saldo":jugador.ficha.saldo,"res":0};
 						
-					}else 
-						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"res":-1};
+						if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Carcel"){
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"res":"carcel","celda":jugador.ficha.getPosicion()};
+						res.send(jsonData);	
+					}
+						
+					if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=jugador.ficha && partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=undefined){
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"saldo":jugador.ficha.saldo,"res":0,"celda":jugador.ficha.getPosicion()};
+					
+					}else {
+		
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"res":-1,"celda":jugador.ficha.getPosicion()};
+						
+						if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Arca Comunal" || partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Suerte!")
+						{	
+
+							jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"saldo":jugador.ficha.saldo,"res":-1,"tarjeta":true,"texto":jugador.ficha.info,"celda":jugador.ficha.getPosicion()};
+							
+						}
+					}
 				}else 
 					jsonData={"res":"Ya lanzaste.","nombre":jugador.nombre};
 			} else jsonData={"res":"No es tu turno.","nombre":jugador.nombre};
@@ -117,7 +133,7 @@ app.get("/comprar/:uidJugador",function(req,res){
 })
 
 app.get("/turno/:uidJugador",function(req,res){
-	var jsonData;
+	var jsonData={};
 	var jugador;
 	var letoca;
 	for(var f=0;f<partida.coleccionJugadores.length;f++){
@@ -125,7 +141,10 @@ app.get("/turno/:uidJugador",function(req,res){
 			jugador=partida.coleccionJugadores[f];
 			if(jugador.turno.nombre=="metoca"){
 				if(jugador.yaLanzo==true){
-				jugador.cambiarTurno();
+					jugador.cambiarTurno();
+					
+					io.emit("turno",{partida:"ok"});
+					
 				for(var k=0;k<partida.coleccionJugadores.length;k++){
 					if(partida.coleccionJugadores[k].turno.nombre=="metoca"){
 						letoca=partida.coleccionJugadores[k];
@@ -143,6 +162,62 @@ app.get("/turno/:uidJugador",function(req,res){
 	
 	res.send(jsonData);
 })
+
+app.get("/mirar/:uidJugador",function(req,res){
+	var jsonData={};
+	var jugador;
+	for(var f=0;f<partida.coleccionJugadores.length;f++){
+		if(req.params.uidJugador==partida.coleccionJugadores[f].uid){
+			jugador=partida.coleccionJugadores[f];
+			jsonData={"res":jugador.turno.nombre};
+		}
+	}
+	res.send(jsonData);
+})
+
+
+app.get("dobles/:uidJugador",function(req,res){
+	var jsonData={};
+	var jugador;
+	for(var f=0;f<partida.coleccionJugadores.length;f++){
+		if(req.params.uidJugador==partida.coleccionJugadores[f].uid){
+			jugador=partida.coleccionJugadores[f];
+			if(jugador.ficha.encarcelado==1){
+				jugador.ficha.salirConDobles();
+				if(jugador.ficha.encarcelado==0)
+					jsonData={"res":0};
+			}
+				
+		}
+	}
+	res.send(jsonData);
+	
+})
+
+app.get("tarjetaSalir/:uidJugador",function(req,res){
+	
+		var jsonData={};
+	var jugador;
+	for(var f=0;f<partida.coleccionJugadores.length;f++){
+		if(req.params.uidJugador==partida.coleccionJugadores[f].uid){
+			jugador=partida.coleccionJugadores[f];
+			if(jugador.ficha.encarcelado==1 && jugador.ficha.tarjetaSalirCarcel==1){
+				jugador.ficha.salirConTarjeta();
+					jsonData={"res":0};
+			}
+				
+		}
+	}
+	res.send(jsonData);
+})
+/*
+io.on("connection",function(client){
+	
+
+	client.on("cambiarTurno",function(data){
+		
+	})
+})*/
 
 
 
@@ -315,6 +390,7 @@ app.get("/edificarMorado/",function(req,res){
 	res.send(jsonData);
 })
 
+
 /////////////Pruebas
 
 app.get("/turnoPrueba/",function(req,res){
@@ -422,6 +498,9 @@ app.get("/edificarMarronPrueba/",function(req,res){
 	res.send(jsonData);
 })
 
+io.on('connection', function(socket){
+	console.log("A user connected.");
+})
 
 server.listen(port,host);
-console.log("servidor iniciado en puerto "+port+" y host "+host);
+console.log("Servidor iniciado en puerto "+port+" y host "+host);

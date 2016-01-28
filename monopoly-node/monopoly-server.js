@@ -104,6 +104,55 @@ app.get("/lanzar/:uidJugador",function(req,res){
 	res.send(jsonData);
 })
 
+app.get("/lanceLibre/:uidJugador/:num",function(req,res){
+	var jsonData={};
+	var jugador;
+	var num = parseInt(req.params.num);
+	for(var f=0;f<partida.coleccionJugadores.length;f++){
+		if(req.params.uidJugador==partida.coleccionJugadores[f].uid){
+			jugador=partida.coleccionJugadores[f];
+			if(jugador.turno.nombre=="metoca"){
+				if(jugador.yaLanzo==false){
+					jugador.lanzarLibre(num);	
+										if(partida.ganador==jugador){
+						jsonData={"res":"Eres el ganador!","nombre":partida.ganador.nombre};
+							res.send(jsonData);
+					}
+					if(jugador.ficha.estado=="perdedor"){
+							jugador.cambiarTurno();
+							jsonData={"res":"Has agotado tu dinero.","nombre":jugador.nombre, "posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre};		
+							if(partida.fase.nombre=="Fin")
+								jsonData={"res":"El juego ha terminado.","nombre":partida.ganador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre};
+							res.send(jsonData);	
+						}
+						
+						if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Carcel"){
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"res":"carcel","celda":jugador.ficha.getPosicion()};
+						res.send(jsonData);	
+					}
+						
+					if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=jugador.ficha && partida.tablero.casillas[jugador.ficha.getPosicion()].tema.comprador!=undefined){
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"saldo":jugador.ficha.saldo,"res":0,"celda":jugador.ficha.getPosicion()};
+					
+					}else {
+		
+						jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"res":-1,"celda":jugador.ficha.getPosicion()};
+						
+						if(partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Arca Comunal" || partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre=="Suerte!")
+						{	
+
+							jsonData={"nombre":jugador.nombre,"posicion":partida.tablero.casillas[jugador.ficha.getPosicion()].tema.nombre,"saldo":jugador.ficha.saldo,"res":-1,"tarjeta":true,"texto":jugador.ficha.info,"celda":jugador.ficha.getPosicion()};
+							
+						}
+					}
+				}else 
+					jsonData={"res":"Ya lanzaste.","nombre":jugador.nombre};
+			} else jsonData={"res":"No es tu turno.","nombre":jugador.nombre};
+		}
+	}
+	
+	res.send(jsonData);
+})
 
 app.get("/comprar/:uidJugador",function(req,res){
 	var jsonData;

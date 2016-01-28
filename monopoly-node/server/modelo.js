@@ -87,6 +87,16 @@ function EsMiTurno(tablero){
 		jugador.yaLanzo=true;
 		} else console.log("Ya lanzaste.");
 	}
+	
+	this.lanzarLibre=function(jugador,num){
+		if(jugador.tiradas>0){
+	    var numero=num;
+		console.log("Dado: "+numero);
+		tablero.mover(jugador.ficha,numero);
+		jugador.tiradas=0;
+		jugador.yaLanzo=true;
+		} else console.log("Ya lanzaste.");
+	}
 	this.lanzar2=function(jugador){
 		var d1=Math.round(Math.random()*5+1);
 		var d2=Math.round(Math.random()*5+1);
@@ -164,6 +174,9 @@ function NoMeToca(){
 	this.lanzar2=function(jugador){
 		console.log("No es tu turno.");
 	}
+	this.lanzarLibre=function(jugador,num){
+		console.log("No es tu turno.");
+	}
 	this.edificar=function(propiedad){
 		console.log("No es tu turno.");
 	}
@@ -209,6 +222,11 @@ function FaseJugar(juego){
 		jugador.turno.lanzar2(jugador);
 	}
 	
+	
+	this.lanzarLibre=function(jugador,num){
+		jugador.turno.lanzarLibre(jugador,num);
+				
+	}
 	this.compruebaFin=function(){
 		juego.compruebaFin();
 
@@ -256,6 +274,15 @@ function Jugador(nombre,juego){
 	else if(this.ficha.estado=="perdedor")
 		console.log("No puedes seguir jugando porque ya has perdido.");
 	}
+	
+	this.lanzarLibre=function(num){
+		if(this.ficha.estado=="operativa")
+			juego.fase.lanzarLibre(this,num);
+		else if(this.ficha.estado=="perdedor")
+			console.log("No puedes seguir jugando porque ya has perdido.");
+	
+	}
+	
 	this.cambiarTurno=function(){
 		if(this.yaLanzo==true){
 		this.juego.cambiarTurno(this);

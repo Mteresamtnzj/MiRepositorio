@@ -224,7 +224,8 @@ function mirarTurno(uid){
 			if (data.res=="metoca")
 				mostrarDialogo("Tu turno.");
 		}
-	)}
+	)
+	}
 
 function mostrarDatos(jugador,uid,ficha,posicion){
 	$('#zonaDatos').remove();
@@ -244,6 +245,42 @@ function mostrarDialogo(texto){
 		hide:{effect:"explode",duration:1000},
 		dialogClass:"dialog-class"
 	})
+}
+
+
+function lanzarLibre(num){
+$.getJSON(url+'lanceLibre/'+$.cookie("uid")+"/"+num,function(data){
+	if(data.res=="Ya lanzaste.")
+				mostrarDialogo(data.res);
+			if(data.res=="No es tu turno.")
+				mostrarDialogo(data.res);
+			if(data.res=="Eres el ganador!"){
+				mostrarDialogo("El juego ha terminado. "+data.res+"!!");
+				$('#zonaBotones').remove();
+			}
+			if(data.res=="El juego ha terminado."){
+				mostrarDialogo("Has caido en la casilla "+data.posicion+" y debes pagar. "+data.res+" El ganador es "+data.nombre+"!!");
+				$('#zonaBotones').remove();
+			}
+			if(data.res=="Has agotado tu dinero."){
+				$('#zonaBotones').remove();
+			}
+			if(data.res=="carcel"){
+				mostrarDialogo("El jugador "+data.nombre+" ha caido en la Carcel.");
+				$('#datos').append("<p id='zonaCarcel'><button id='dobles'><b>Lanzar dobles</b></button><button id='tarjetaSalir'><b>Usar tarjeta</b></button><button id='fianza'><b>Pagr fianza</b></button></p>");
+			}
+				
+			if(data.res==-1)
+				mostrarDialogo("El jugador "+data.nombre+" esta en la casilla "+data.posicion+".");
+			if(data.tarjeta==true)
+				mostrarDialogo(data.texto);
+			
+			if(data.res==0)
+				mostrarDialogo("El jugador "+data.nombre+" ha caido en "+data.posicion+" y debe pagar. Su saldo es "+data.saldo);
+			$.cookie("posicion",data.celda);	
+			ponerFicha();
+		}
+	)
 }
 
 //Interfaz y movimiento de fichas

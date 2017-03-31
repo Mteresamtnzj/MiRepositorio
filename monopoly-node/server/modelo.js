@@ -47,7 +47,7 @@ function Partida(tablero, coleccionFichas,numeroJugadores){
 	this.compruebaFin=function(){
 		
 		for(j in this.coleccionJugadores){
-			if(this.coleccionJugadores[j].ficha.saldo>20000){
+			if(this.coleccionJugadores[j].ficha.saldo>600){
 				this.ganador=this.coleccionJugadores[j];
 				console.log("El juego termino. El GANADOR es "+this.ganador.nombre+"!!");
 				this.fase=new FaseFin();
